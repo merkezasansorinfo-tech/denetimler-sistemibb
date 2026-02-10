@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Tablo Yöneticisi | Kalan Gün Takibi</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1e5799 0%, #207cca 100%);
+            color: white;
+            padding: 25px 30px;
+            border-bottom: 5px solid #ff6b6b;
+        }
+        
+        header h1 {
+            font-size: 26px;
+            margin-bottom: 8px;
+        }
+        
+        header p {
+            opacity: 0.9;
+            font-size: 15px;
+        }
+        
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background-color: #f1f5f9;
+            border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .toolbar h2 {
+            color: #1e5799;
+            font-size: 20px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-primary {
+            background-color: #1e5799;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #16437e;
+        }
+        
+        .btn-success {
+            background-color: #2e7d32;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #1b5e20;
+        }
+        
+        .btn-danger {
+            background-color: #c62828;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #b71c1c;
+        }
+        
+        .btn-warning {
+            background-color: #ff8f00;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e65100;
+        }
+        
+        .controls label {
+            font-weight: 600;
+            color: #444;
+        }
+        
+        .controls select, .controls input {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            padding: 0 10px 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            min-width: 900px;
+        }
+        
+        thead {
+            background-color: #2c3e50;
+            color: white;
+        }
+        
+        th {
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            border-right: 1px solid #3a506b;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        th:last-child {
+            border-right: none;
+        }
+        
+        th:hover {
+            background-color: #34495e;
+        }
+        
+        th.sort-asc::after {
+            content: " ↑";
+            font-weight: bold;
+        }
+        
+        th.sort-desc::after {
+            content: " ↓";
+            font-weight: bold;
+        }
+        
+        tbody tr {
+            border-bottom: 1px solid #e1e1e1;
+        }
+        
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        td {
+            padding: 12px 12px;
+            border-right: 1px solid #eaeaea;
+        }
+        
+        td:last-child {
+            border-right: none;
+        }
+        
+        .action-cell {
+            width: 100px;
+            text-align: center;
+        }
+        
+        .action-btn {
+            padding: 5px 10px;
+            margin: 0 3px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .edit-btn {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .delete-btn {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .kalan-gun {
+            font-weight: bold;
+        }
+        
+        .kirmizi {
+            background-color: #ffebee;
+            color: #c62828;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        
+        .mavi {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        
+        .sari {
+            background-color: #fff8e1;
+            color: #ff8f00;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        
+        .negative {
+            color: #e53935;
+        }
+        
+        .positive {
+            color: #2e7d32;
+        }
+        
+        .form-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .form-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .form-header h3 {
+            color: #1e5799;
+            font-size: 22px;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #666;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .close-btn:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 15px;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .summary {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px 30px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #ddd;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .summary-item {
+            text-align: center;
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .summary-value {
+            font-size: 28px;
+            font-weight: 700;
+            display: block;
+        }
+        
+        .summary-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .kirmizi-count .summary-value {
+            color: #c62828;
+        }
+        
+        .mavi-count .summary-value {
+            color: #1565c0;
+        }
+        
+        .sari-count .summary-value {
+            color: #ff8f00;
+        }
+        
+        .toplam-count .summary-value {
+            color: #2e7d32;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+            margin-top: 20px;
+        }
+        
+        .selected-row {
+            background-color: #e3f2fd !important;
+        }
+        
+        @media (max-width: 768px) {
+            .toolbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .btn-group {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .controls {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .summary {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            th, td {
+                padding: 10px 8px;
+                font-size: 14px;
+            }
+            
+            .form-container {
+                padding: 20px;
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Excel Tablo Yöneticisi</h1>
+            <p>Kalan Gün Takip Sistemi - Satır Ekleme/Silme Özellikli</p>
+        </header>
+        
+        <div class="toolbar">
+            <h2>Bina Denetim Takip Tablosu</h2>
+            <div class="controls">
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="addRowBtn">
+                        <span>+</span> Yeni Satır Ekle
+                    </button>
+                    <button class="btn btn-danger" id="deleteSelectedBtn">
+                        <span>🗑️</span> Seçili Satırı Sil
+                    </button>
+                    <button class="btn btn-success" id="exportBtn">
+                        <span>📥</span> CSV İndir
+                    </button>
+                </div>
+                
+                <div class="search-box">
+                    <label for="search">Ara:</label>
+                    <input type="text" id="search" placeholder="Bina adı veya etiket...">
+                </div>
+                
+                <div>
+                    <label for="filter">Duruma Göre:</label>
+                    <select id="filter">
+                        <option value="all">Tümü</option>
+                        <option value="kirmizi">Kırmızı</option>
+                        <option value="mavi">Mavi</option>
+                        <option value="sari">Sarı</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="sort">Sırala:</label>
+                    <select id="sort">
+                        <option value="kalan-asc">Kalan Gün (Artan)</option>
+                        <option value="kalan-desc">Kalan Gün (Azalan)</option>
+                        <option value="bina">Bina Adı (A-Z)</option>
+                        <option value="tarih">Denetim Tarihi</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table id="excelTable">
+                <thead>
+                    <tr>
+                        <th width="30">
+                            <input type="checkbox" id="selectAll">
+                        </th>
+                        <th data-sort="kalan" width="100">KALAN GÜN</th>
+                        <th data-sort="bina">BİNA</th>
+                        <th data-sort="tarih" width="120">DENETİM TAR</th>
+                        <th data-sort="durum" width="100">ETİKET</th>
+                        <th data-sort="tekrar" width="120">TEKRAR TAR</th>
+                        <th width="120">NO</th>
+                        <th class="action-cell" width="100">İŞLEMLER</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Tablo verileri JavaScript ile eklenecek -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="summary">
+            <div class="summary-item kirmizi-count">
+                <span class="summary-value" id="kirmiziCount">0</span>
+                <span class="summary-label">Kırmızı Etiket</span>
+            </div>
+            <div class="summary-item mavi-count">
+                <span class="summary-value" id="maviCount">0</span>
+                <span class="summary-label">Mavi Etiket</span>
+            </div>
+            <div class="summary-item sari-count">
+                <span class="summary-value" id="sariCount">0</span>
+                <span class="summary-label">Sarı Etiket</span>
+            </div>
+            <div class="summary-item toplam-count">
+                <span class="summary-value" id="totalCount">0</span>
+                <span class="summary-label">Toplam Kayıt</span>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Bu tablo HTML ve JavaScript kullanılarak oluşturulmuştur. Excel benzeri sıralama, filtreleme, satır ekleme ve silme özellikleri içerir.</p>
+            <p>Son güncelleme: <span id="currentDate"></span></p>
+        </footer>
+    </div>
+
+    <!-- Satır Ekleme/Düzenleme Formu -->
+    <div class="form-overlay" id="formOverlay">
+        <div class="form-container">
+            <div class="form-header">
+                <h3 id="formTitle">Yeni Satır Ekle</h3>
+                <button class="close-btn" id="closeFormBtn">&times;</button>
+            </div>
+            
+            <form id="rowForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="formKalanGun">Kalan Gün</label>
+                        <input type="number" id="formKalanGun" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="formBina">Bina Adı</label>
+                        <input type="text" id="formBina" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="formDenetimTar">Denetim Tarihi</label>
+                        <input type="text" id="formDenetimTar" placeholder="gg.aa.yyyy" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="formEtiket">Etiket</label>
+                        <select id="formEtiket" required>
+                            <option value="">Seçiniz</option>
+                            <option value="KIRMIZI">Kırmızı</option>
+                            <option value="MAVİ">Mavi</option>
+                            <option value="SARI">Sarı</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="formTekrarTar">Tekrar Tarihi</label>
+                        <input type="text" id="formTekrarTar" placeholder="gg.aa.yyyy" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="formNo">No</label>
+                        <input type="text" id="formNo" value="0">
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-warning" id="cancelBtn">İptal</button>
+                    <button type="submit" class="btn btn-success" id="saveBtn">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Tablo verileri - localStorage'dan yükle veya varsayılan verileri kullan
+        let tableData = [];
+        let editingRowIndex = -1; // Düzenlenen satırın indeksi (-1 ise yeni ekleme)
+        let selectedRows = new Set(); // Seçili satırların indeksleri
+        
+        // Varsayılan veriler
+        const defaultData = [
+            { kalanGun: -490, bina: "AKYOL", denetimTar: "09.08.2024", etiket: "KIRMIZI", tekrarTar: "08.10.2024", no: "0" },
+            { kalanGun: -289, bina: "ÇÖZÜM AKADEMİ 375/148", denetimTar: "26.02.2025", etiket: "KIRMIZI", tekrarTar: "27.04.2025", no: "0" },
+            { kalanGun: -248, bina: "AYKOM 9 B 560/5", denetimTar: "07.06.2024", etiket: "MAVİ", tekrarTar: "07.06.2025", no: "0" },
+            { kalanGun: -246, bina: "ERENGÜL 151/5", denetimTar: "09.06.2024", etiket: "MAVİ", tekrarTar: "09.06.2025", no: "0" },
+            { kalanGun: -220, bina: "PARKYAŞAM A 555/1", denetimTar: "05.07.2024", etiket: "MAVİ", tekrarTar: "05.07.2025", no: "0" },
+            { kalanGun: -191, bina: "CANSU 302/1", denetimTar: "04.06.2025", etiket: "KIRMIZI", tekrarTar: "03.08.2025", no: "0" },
+            { kalanGun: -190, bina: "NİYAZİ SEYHUN 164/1", denetimTar: "05.06.2025", etiket: "KIRMIZI", tekrarTar: "04.08.2025", no: "0" },
+            { kalanGun: -151, bina: "KAYA 127/9", denetimTar: "14.07.2025", etiket: "KIRMIZI", tekrarTar: "12.09.2025", no: "0" },
+            { kalanGun: -141, bina: "HETAŞ A 107/69", denetimTar: "22.09.2024", etiket: "MAVİ", tekrarTar: "22.09.2025", no: "0" },
+            { kalanGun: -93, bina: "SEVİNÇ-2 238/38", denetimTar: "10.09.2025", etiket: "KIRMIZI", tekrarTar: "09.11.2025", no: "0" }
+        ];
+        
+        // DOM elementleri
+        const elements = {
+            tableBody: document.getElementById('tableBody'),
+            filter: document.getElementById('filter'),
+            sort: document.getElementById('sort'),
+            search: document.getElementById('search'),
+            formOverlay: document.getElementById('formOverlay'),
+            formTitle: document.getElementById('formTitle'),
+            closeFormBtn: document.getElementById('closeFormBtn'),
+            cancelBtn: document.getElementById('cancelBtn'),
+            rowForm: document.getElementById('rowForm'),
+            addRowBtn: document.getElementById('addRowBtn'),
+            deleteSelectedBtn: document.getElementById('deleteSelectedBtn'),
+            exportBtn: document.getElementById('exportBtn'),
+            selectAll: document.getElementById('selectAll'),
+            currentDate: document.getElementById('currentDate'),
+            kirmiziCount: document.getElementById('kirmiziCount'),
+            maviCount: document.getElementById('maviCount'),
+            sariCount: document.getElementById('sariCount'),
+            totalCount: document.getElementById('totalCount')
+        };
+        
+        // Form elementleri
+        const formElements = {
+            kalanGun: document.getElementById('formKalanGun'),
+            bina: document.getElementById('formBina'),
+            denetimTar: document.getElementById('formDenetimTar'),
+            etiket: document.getElementById('formEtiket'),
+            tekrarTar: document.getElementById('formTekrarTar'),
+            no: document.getElementById('formNo')
+        };
+        
+        // Sıralama durumu
+        let currentSort = { column: 'kalanGun', direction: 'asc' };
+        
+        // Uygulama başlatma
+        function initApp() {
+            loadData();
+            renderTable();
+            setupEventListeners();
+            updateCurrentDate();
+        }
+        
+        // Verileri yükle (localStorage'dan veya varsayılan)
+        function loadData() {
+            const savedData = localStorage.getItem('excelTableData');
+            if (savedData) {
+                tableData = JSON.parse(savedData);
+            } else {
+                tableData = [...defaultData];
+                saveData();
+            }
+        }
+        
+        // Verileri kaydet (localStorage'a)
+        function saveData() {
+            localStorage.setItem('excelTableData', JSON.stringify(tableData));
+        }
+        
+        // Tabloyu oluştur
+        function renderTable(data = tableData) {
+            elements.tableBody.innerHTML = '';
+            
+            // Eğer veri filtrelenmiş veya sıralanmışsa onu kullan
+            const displayData = data || tableData;
+            
+            displayData.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.dataset.index = index;
+                
+                // Seçili satır kontrolü
+                if (selectedRows.has(index)) {
+                    row.classList.add('selected-row');
+                }
+                
+                // Checkbox hücresi
+                const checkboxCell = document.createElement('td');
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = selectedRows.has(index);
+                checkbox.addEventListener('change', (e) => {
+                    e.stopPropagation();
+                    toggleRowSelection(index, checkbox.checked);
+                });
+                checkboxCell.appendChild(checkbox);
+                
+                // Kalan gün hücresi
+                const kalanGunCell = document.createElement('td');
+                kalanGunCell.className = 'kalan-gun';
+                if (item.kalanGun < 0) {
+                    kalanGunCell.classList.add('negative');
+                } else if (item.kalanGun > 0) {
+                    kalanGunCell.classList.add('positive');
+                }
+                kalanGunCell.textContent = item.kalanGun;
+                
+                // Bina adı hücresi
+                const binaCell = document.createElement('td');
+                binaCell.textContent = item.bina;
+                
+                // Denetim tarihi hücresi
+                const denetimCell = document.createElement('td');
+                denetimCell.textContent = item.denetimTar;
+                
+                // Etiket hücresi
+                const etiketCell = document.createElement('td');
+                const etiketSpan = document.createElement('span');
+                etiketSpan.className = item.etiket.toLowerCase();
+                etiketSpan.textContent = item.etiket;
+                etiketCell.appendChild(etiketSpan);
+                
+                // Tekrar tarihi hücresi
+                const tekrarCell = document.createElement('td');
+                tekrarCell.textContent = item.tekrarTar;
+                
+                // No hücresi
+                const noCell = document.createElement('td');
+                noCell.textContent = item.no;
+                
+                // İşlemler hücresi
+                const actionCell = document.createElement('td');
+                actionCell.className = 'action-cell';
+                
+                const editBtn = document.createElement('button');
+                editBtn.className = 'action-btn edit-btn';
+                editBtn.textContent = 'Düzenle';
+                editBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    editRow(index);
+                });
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'action-btn delete-btn';
+                deleteBtn.textContent = 'Sil';
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteRow(index);
+                });
+                
+                actionCell.appendChild(editBtn);
+                actionCell.appendChild(deleteBtn);
+                
+                // Satıra tıklanınca seçme özelliği
+                row.addEventListener('click', (e) => {
+                    if (e.target.type !== 'checkbox' && !e.target.classList.contains('action-btn')) {
+                        toggleRowSelection(index);
+                    }
+                });
+                
+                // Hücreleri satıra ekle
+                row.appendChild(checkboxCell);
+                row.appendChild(kalanGunCell);
+                row.appendChild(binaCell);
+                row.appendChild(denetimCell);
+                row.appendChild(etiketCell);
+                row.appendChild(tekrarCell);
+                row.appendChild(noCell);
+                row.appendChild(actionCell);
+                
+                // Satırı tabloya ekle
+                elements.tableBody.appendChild(row);
+            });
+            
+            // Özet güncelle
+            updateSummary(displayData);
+            
+            // Tümünü seç checkbox'ını güncelle
+            updateSelectAllCheckbox();
+        }
+        
+        // Satır seçme/deseçleme
+        function toggleRowSelection(index, checked = null) {
+            if (checked === null) {
+                // Tıklamayla değiştir
+                if (selectedRows.has(index)) {
+                    selectedRows.delete(index);
+                } else {
+                    selectedRows.add(index);
+                }
+            } else {
+                // Checkbox ile değiştir
+                if (checked) {
+                    selectedRows.add(index);
+                } else {
+                    selectedRows.delete(index);
+                }
+            }
+            
+            // Tabloyu yeniden render et (seçili satır stilini güncellemek için)
+            renderTable(getFilteredData());
+        }
+        
+        // Tüm satırları seç/deseç
+        function toggleSelectAll(checked) {
+            const filteredData = getFilteredData();
+            selectedRows.clear();
+            
+            if (checked) {
+                // Filtrelenmiş verilerin indekslerini seç
+                filteredData.forEach((_, index) => {
+                    selectedRows.add(index);
+                });
+            }
+            
+            renderTable(filteredData);
+        }
+        
+        // Tümünü seç checkbox'ını güncelle
+        function updateSelectAllCheckbox() {
+            const filteredData = getFilteredData();
+            const allFilteredSelected = filteredData.length > 0 && 
+                filteredData.every((_, index) => selectedRows.has(index));
+            
+            elements.selectAll.checked = allFilteredSelected;
+            elements.selectAll.indeterminate = filteredData.length > 0 && 
+                !allFilteredSelected && 
+                filteredData.some((_, index) => selectedRows.has(index));
+        }
+        
+        // Yeni satır ekleme formunu aç
+        function openAddForm() {
+            editingRowIndex = -1;
+            elements.formTitle.textContent = 'Yeni Satır Ekle';
+            
+            // Formu temizle
+            formElements.kalanGun.value = '';
+            formElements.bina.value = '';
+            formElements.denetimTar.value = '';
+            formElements.etiket.value = '';
+            formElements.tekrarTar.value = '';
+            formElements.no.value = '0';
+            
+            // Formu göster
+            elements.formOverlay.style.display = 'flex';
+        }
+        
+        // Satır düzenleme formunu aç
+        function editRow(index) {
+            editingRowIndex = index;
+            elements.formTitle.textContent = 'Satırı Düzenle';
+            
+            const rowData = tableData[index];
+            
+            // Formu doldur
+            formElements.kalanGun.value = rowData.kalanGun;
+            formElements.bina.value = rowData.bina;
+            formElements.denetimTar.value = rowData.denetimTar;
+            formElements.etiket.value = rowData.etiket;
+            formElements.tekrarTar.value = rowData.tekrarTar;
+            formElements.no.value = rowData.no;
+            
+            // Formu göster
+            elements.formOverlay.style.display = 'flex';
+        }
+        
+        // Formu kapat
+        function closeForm() {
+            elements.formOverlay.style.display = 'none';
+            editingRowIndex = -1;
+        }
+        
+        // Form kaydetme
+        function saveFormData(formData) {
+            if (editingRowIndex === -1) {
+                // Yeni satır ekle
+                tableData.push(formData);
+            } else {
+                // Mevcut satırı güncelle
+                tableData[editingRowIndex] = formData;
+            }
+            
+            saveData();
+            renderTable(getFilteredData());
+            closeForm();
+        }
+        
+        // Satır sil
+        function deleteRow(index) {
+            if (confirm('Bu satırı silmek istediğinize emin misiniz?')) {
+                tableData.splice(index, 1);
+                selectedRows.delete(index);
+                
+                // Seçili satır indekslerini güncelle (silinen satırdan sonrakilerin indeksi değişir)
+                const newSelectedRows = new Set();
+                selectedRows.forEach(selectedIndex => {
+                    if (selectedIndex > index) {
+                        newSelectedRows.add(selectedIndex - 1);
+                    } else if (selectedIndex < index) {
+                        newSelectedRows.add(selectedIndex);
+                    }
+                });
+                selectedRows = newSelectedRows;
+                
+                saveData();
+                renderTable(getFilteredData());
+            }
+        }
+        
+        // Seçili satırları sil
+        function deleteSelectedRows() {
+            if (selectedRows.size === 0) {
+                alert('Lütfen silmek için en az bir satır seçin.');
+                return;
+            }
+            
+            if (confirm(`Seçili ${selectedRows.size} satırı silmek istediğinize emin misiniz?`)) {
+                // Seçili satırları indekse göre azalan sırada sil (sıra bozulmasın diye)
+                const sortedIndices = Array.from(selectedRows).sort((a, b) => b - a);
+                
+                sortedIndices.forEach(index => {
+                    tableData.splice(index, 1);
+                });
+                
+                selectedRows.clear();
+                saveData();
+                renderTable(getFilteredData());
+            }
+        }
+        
+        // Filtrelenmiş verileri al
+        function getFilteredData() {
+            const filterValue = elements.filter.value;
+            const searchValue = elements.search.value.toLowerCase();
+            
+            let filtered = [...tableData];
+            
+            // Etiket filtreleme
+            if (filterValue !== 'all') {
+                filtered = filtered.filter(item => item.etiket.toLowerCase() === filterValue);
+            }
+            
+            // Arama filtreleme
+            if (searchValue) {
+                filtered = filtered.filter(item => 
+                    item.bina.toLowerCase().includes(searchValue) || 
+                    item.etiket.toLowerCase().includes(searchValue)
+                );
+            }
+            
+            // Sıralama
+            return sortData(filtered, currentSort.column, currentSort.direction);
+        }
+        
+        // Sıralama işlevi
+        function sortData(data, column, direction) {
+            return [...data].sort((a, b) => {
+                let aValue = a[column];
+                let bValue = b[column];
+                
+                if (column === 'kalanGun') {
+                    aValue = parseInt(aValue);
+                    bValue = parseInt(bValue);
+                }
+                
+                if (column === 'denetimTar' || column === 'tekrarTar') {
+                    const aParts = aValue.split('.').map(part => parseInt(part));
+                    const bParts = bValue.split('.').map(part => parseInt(part));
+                    
+                    const aDate = new Date(aParts[2], aParts[1]-1, aParts[0]);
+                    const bDate = new Date(bParts[2], bParts[1]-1, bParts[0]);
+                    
+                    aValue = aDate.getTime();
+                    bValue = bDate.getTime();
+                }
+                
+                if (typeof aValue === 'string') {
+                    aValue = aValue.toLowerCase();
+                    bValue = bValue.toLowerCase();
+                }
+                
+                if (direction === 'asc') {
+                    return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+                } else {
+                    return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+                }
+            });
+        }
+        
+        // Özet güncelle
+        function updateSummary(data) {
+            const kirmiziCount = data.filter(item => item.etiket === 'KIRMIZI').length;
+            const maviCount = data.filter(item => item.etiket === 'MAVİ').length;
+            const sariCount = data.filter(item => item.etiket === 'SARI').length;
+            const totalCount = data.length;
+            
+            elements.kirmiziCount.textContent = kirmiziCount;
+            elements.maviCount.textContent = maviCount;
+            elements.sariCount.textContent = sariCount;
+            elements.totalCount.textContent = totalCount;
+        }
+        
+        // CSV indir
+        function exportToCSV() {
+            const data = getFilteredData();
+            
+            // CSV başlıkları
+            const headers = ['KALAN GÜN', 'BİNA', 'DENETİM TAR', 'ETİKET', 'TEKRAR TAR', 'NO'];
+            
+            // CSV satırları
+            const csvRows = [
+                headers.join(','),
+                ...data.map(row => [
+                    row.kalanGun,
+                    `"${row.bina}"`, // Tırnak içine al (virgül içerebilir)
+                    row.denetimTar,
+                    row.etiket,
+                    row.tekrarTar,
+                    row.no
+                ].join(','))
+            ];
+            
+            // CSV içeriği
+            const csvContent = csvRows.join('\n');
+            
+            // Blob oluştur ve indir
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `denetim_takip_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
+        
+        // Tarihi güncelle
+        function updateCurrentDate() {
+            const now = new Date();
+            const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+            elements.currentDate.textContent = now.toLocaleDateString('tr-TR', options);
+        }
+        
+        // Event listener'ları kur
+        function setupEventListeners() {
+            // Form olayları
+            elements.closeFormBtn.addEventListener('click', closeForm);
+            elements.cancelBtn.addEventListener('click', closeForm);
+            
+            elements.rowForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const formData = {
+                    kalanGun: parseInt(formElements.kalanGun.value),
+                    bina: formElements.bina.value,
+                    denetimTar: formElements.denetimTar.value,
+                    etiket: formElements.etiket.value,
+                    tekrarTar: formElements.tekrarTar.value,
+                    no: formElements.no.value || '0'
+                };
+                
+                saveFormData(formData);
+            });
+            
+            // Overlay'e tıklayınca formu kapat
+            elements.formOverlay.addEventListener('click', (e) => {
+                if (e.target === elements.formOverlay) {
+                    closeForm();
+                }
+            });
+            
+            // Araç çubuğu butonları
+            elements.addRowBtn.addEventListener('click', openAddForm);
+            elements.deleteSelectedBtn.addEventListener('click', deleteSelectedRows);
+            elements.exportBtn.addEventListener('click', exportToCSV);
+            
+            // Tümünü seç checkbox'ı
+            elements.selectAll.addEventListener('change', (e) => {
+                toggleSelectAll(e.target.checked);
+            });
+            
+            // Filtre, sıralama ve arama olayları
+            elements.filter.addEventListener('change', () => {
+                renderTable(getFilteredData());
+            });
+            
+            elements.sort.addEventListener('change', () => {
+                const sortValue = elements.sort.value;
+                
+                if (sortValue === 'kalan-asc') {
+                    currentSort = { column: 'kalanGun', direction: 'asc' };
+                } else if (sortValue === 'kalan-desc') {
+                    currentSort = { column: 'kalanGun', direction: 'desc' };
+                } else if (sortValue === 'bina') {
+                    currentSort = { column: 'bina', direction: 'asc' };
+                } else if (sortValue === 'tarih') {
+                    currentSort = { column: 'denetimTar', direction: 'asc' };
+                }
+                
+                renderTable(getFilteredData());
+            });
+            
+            elements.search.addEventListener('input', () => {
+                renderTable(getFilteredData());
+            });
+            
+            // Başlıklara tıklayarak sıralama
+            document.querySelectorAll('th[data-sort]').forEach(th => {
+                th.addEventListener('click', function() {
+                    const sortColumn = this.getAttribute('data-sort');
+                    
+                    let column;
+                    if (sortColumn === 'kalan') column = 'kalanGun';
+                    else if (sortColumn === 'bina') column = 'bina';
+                    else if (sortColumn === 'tarih') column = 'denetimTar';
+                    else if (sortColumn === 'durum') column = 'etiket';
+                    else if (sortColumn === 'tekrar') column = 'tekrarTar';
+                    
+                    // Yönü değiştir
+                    if (currentSort.column === column) {
+                        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSort = { column: column, direction: 'asc' };
+                    }
+                    
+                    // Sıralama işaretlerini güncelle
+                    document.querySelectorAll('th').forEach(h => {
+                        h.classList.remove('sort-asc', 'sort-desc');
+                    });
+                    
+                    if (currentSort.direction === 'asc') {
+                        this.classList.add('sort-asc');
+                    } else {
+                        this.classList.add('sort-desc');
+                    }
+                    
+                    // Sıralama seçim kutusunu güncelle
+                    let sortSelectValue = 'kalan-asc';
+                    if (currentSort.column === 'kalanGun') {
+                        sortSelectValue = currentSort.direction === 'asc' ? 'kalan-asc' : 'kalan-desc';
+                    } else if (currentSort.column === 'bina') {
+                        sortSelectValue = 'bina';
+                    } else if (currentSort.column === 'denetimTar') {
+                        sortSelectValue = 'tarih';
+                    }
+                    
+                    elements.sort.value = sortSelectValue;
+                    
+                    renderTable(getFilteredData());
+                });
+            });
+        }
+        
+        // Uygulamayı başlat
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
